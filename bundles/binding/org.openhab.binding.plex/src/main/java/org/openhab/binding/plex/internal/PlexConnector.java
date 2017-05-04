@@ -63,6 +63,8 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.AsyncHttpClientConfig;
 import com.ning.http.client.AsyncHttpClientConfig.Builder;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.Response;
 import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
 import com.ning.http.client.websocket.WebSocket;
@@ -334,9 +336,35 @@ public class PlexConnector extends Thread {
     }
 
     private WebSocketUpgradeHandler createWebSocketHandler() {
-        WebSocketUpgradeHandler.Builder builder = new WebSocketUpgradeHandler.Builder();
+        PlexWebSocketHandler.Builder builder = new PlexWebSocketHandler.Builder();
         builder.addWebSocketListener(new PlexWebSocketListener());
-        return builder.build();
+        return new PlexWebSocketHandler(builder);
+    }
+
+    private class PlexWebSocketHandler extends WebSocketUpgradeHandler {
+
+        protected PlexWebSocketHandler(Builder b) {
+            super(b);
+        }
+
+        @Override
+        public com.ning.http.client.AsyncHandler.STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
+            logger.debug(headers.getHeaders().toString());
+            return super.onHeadersReceived(headers);
+        }
+
+        @Override
+        public com.ning.http.client.AsyncHandler.STATE onStatusReceived(HttpResponseStatus responseStatus)
+                throws Exception {
+            logger.debug(responseStatus.toString());
+            return super.onStatusReceived(responseStatus);
+        }
+
+        @Override
+        public void onSuccess(WebSocket arg0) {
+            logger.debug(arg0.toString());
+            super.onSuccess(arg0);
+        }
     }
 
     private AsyncHttpClientConfig createAsyncHttpClientConfig() {

@@ -39,6 +39,8 @@ public class PlexConnectionProperties {
 
     private PlexApiLevel apiLevel = PlexApiLevel.getLatest();
 
+    private PlexListenerType listenerType = PlexListenerType.WEBSOCKET;
+
     public String getHost() {
         return host;
     }
@@ -103,6 +105,14 @@ public class PlexConnectionProperties {
 
     public void setApiLevel(PlexApiLevel apiLevel) {
         this.apiLevel = apiLevel;
+    }
+
+    public PlexListenerType getListenerType() {
+        return listenerType;
+    }
+
+    public void setListenerType(PlexListenerType listenerType) {
+        this.listenerType = listenerType;
     }
 
     public boolean hasToken() {

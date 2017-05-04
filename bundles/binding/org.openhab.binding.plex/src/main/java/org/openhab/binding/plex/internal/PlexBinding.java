@@ -36,6 +36,9 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,20 +184,40 @@ public class PlexBinding extends AbstractActiveBinding<PlexBindingProvider> {
             refreshInterval = Long.parseLong(refresh);
         }
 
-        logger.debug("Plex config, server at {}:{}", connectionProperties.getHost(), connectionProperties.getPort());
+        String type = Objects.toString(configuration.get("type"), null);
+        if (type != null) {
+            connectionProperties.setListenerType(PlexListenerType.valueOf(type.toUpperCase()));
+        }
 
-        if (isNotBlank(connectionProperties.getHost())) {
-            try {
-                connect(connectionProperties);
-                setProperlyConfigured(true);
-            } catch (UnknownHostException e) {
+        if (connectionProperties.getListenerType() == PlexListenerType.WEBSOCKET) {
+            logger.debug("Plex config, using websockets, server at {}:{}", connectionProperties.getHost(),
+                    connectionProperties.getPort());
+
+            if (isNotBlank(connectionProperties.getHost())) {
+                try {
+                    connect(connectionProperties);
+                    setProperlyConfigured(true);
+                } catch (UnknownHostException e) {
+                    setProperlyConfigured(false);
+                    logger.error("Cannot resolve Plex Media Server host: " + connectionProperties.getHost());
+                }
+            } else {
+                logger.warn("No host configured for Plex binding");
                 setProperlyConfigured(false);
-                logger.error("Cannot resolve Plex Media Server host: " + connectionProperties.getHost());
             }
         } else {
-            logger.warn("No host configured for Plex binding");
-            setProperlyConfigured(false);
+            logger.debug("Plex config, using webhook");
+            setupWebhook();
+            setProperlyConfigured(true);
         }
+
+    }
+
+    private void setupWebhook() {
+        BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+        ServiceReference<?> serviceReference = bundleContext.getServiceReference(HttpService.class.getName());
+        HttpService httpService = (HttpService) bundleContext.getService(serviceReference);
+
     }
 
     public void deactivate(final int reason) {
