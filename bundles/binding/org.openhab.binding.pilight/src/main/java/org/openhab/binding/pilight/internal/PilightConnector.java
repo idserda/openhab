@@ -56,7 +56,7 @@ public class PilightConnector extends Thread {
 
     private PilightConnection connection;
 
-    private IPilightMessageReceivedCallback callback;
+    private PilightConnectionCallback callback;
 
     private ObjectMapper inputMapper = new ObjectMapper()
             .configure(org.codehaus.jackson.JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
@@ -74,7 +74,7 @@ public class PilightConnector extends Thread {
 
     private ExecutorService delayedUpdateThreadPool = Executors.newSingleThreadExecutor();
 
-    public PilightConnector(PilightConnection connection, IPilightMessageReceivedCallback callback) {
+    public PilightConnector(PilightConnection connection, PilightConnectionCallback callback) {
         this.connection = connection;
         this.callback = callback;
     }
@@ -230,6 +230,7 @@ public class PilightConnector extends Thread {
                     logger.info("Established connection to pilight server at {}:{}", connection.getHostname(),
                             connection.getPort());
                     connection.setSocket(socket);
+                    callback.connected(connection);
                 } else {
                     logger.debug("pilight client not accepted: {}", response.getStatus());
                 }

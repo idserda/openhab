@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * @author Jeroen Idserda
  * @since 1.0
  */
-public class PilightBinding extends AbstractBinding<PilightBindingProvider>implements ManagedService {
+public class PilightBinding extends AbstractBinding<PilightBindingProvider> implements ManagedService {
 
     private static final Logger logger = LoggerFactory.getLogger(PilightBinding.class);
 
@@ -311,10 +311,16 @@ public class PilightBinding extends AbstractBinding<PilightBindingProvider>imple
     }
 
     private void startConnector(PilightConnection connection) {
-        connection.setConnector(new PilightConnector(connection, new IPilightMessageReceivedCallback() {
+        connection.setConnector(new PilightConnector(connection, new PilightConnectionCallback() {
             @Override
             public void messageReceived(PilightConnection connection, Status status) {
                 processStatus(connection, status);
+            }
+
+            @Override
+            public void connected(PilightConnection connection) {
+                logger.debug("Connected, setting initial state");
+                setInitialState();
             }
         }));
         connection.getConnector().start();
@@ -398,7 +404,7 @@ public class PilightBinding extends AbstractBinding<PilightBindingProvider>imple
 
         if (config != null) {
             PilightConnection connection = connections.get(config.getInstance());
-            if (connection.isConnected()) {
+            if (connection != null && connection.isConnected()) {
                 connection.getConnector().refreshConfig(new IPilightConfigReceivedCallback() {
                     @Override
                     public void configReceived(PilightConnection connection) {

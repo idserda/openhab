@@ -16,14 +16,20 @@ import org.openhab.binding.pilight.internal.communication.Status;
  * @author Jeroen Idserda
  * @since 1.0
  */
-public interface IPilightMessageReceivedCallback {
+public interface PilightConnectionCallback {
 
     /**
-     * Update for a device received.
-     * 
+     * Message was received on a connection
+     *
      * @param connection The connection to pilight that received the update
      * @param status Object containing list of devices that were updated and their current state
      */
     public void messageReceived(PilightConnection connection, Status status);
 
+    /**
+     * Connection to pilight was successfully set up
+     *
+     * @param connection The relevant connection to pilight
+     */
+    public void connected(PilightConnection connection);
 }
